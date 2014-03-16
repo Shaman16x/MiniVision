@@ -217,9 +217,10 @@ void displayStartCounter(){
 
 // display ending statistics
 void displayEndSession(){
-  int BSN = int(EEPROM.read(3) + EEPROM.read(4) + EEPROM.read(5));
-  int BT = int(EEPROM.read(6))*60;
-  int BH = int(EEPROM.read(7) + EEPROM.read(8) + EEPROM.read(9) + EEPROM.read(10));
+  int BSN = (EEPROM.read(3)-'0')*100 + (EEPROM.read(4)-'0')*10 + (EEPROM.read(5)-'0');
+  int BT = (EEPROM.read(6)-'0')*60;
+  int BH = (EEPROM.read(7)-'0')*1000 + (EEPROM.read(8)-'0')*100
+         + (EEPROM.read(9)-'0')*10 + (EEPROM.read(10)-'0');
   double BRT = 1.0*BH/BT;
   double RT = 1.0*hits/time*60;
   
