@@ -122,7 +122,7 @@ void setDefaults(){
 
 // 1 loop is full session
 void loop(){
-  if (SD.begin(chipSelect))
+  /if (SD.begin(chipSelect))
     saveToSD();
   setDefaults();
   while(!go)
