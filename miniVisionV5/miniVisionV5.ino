@@ -9,24 +9,32 @@
   EEPROM address 1 is for session number
 */
 
-const int bpin0 = 0;        // input button 0 (pin number?)
-const int bpin1 = 0;        // input button 0 (pin number?)
-const int bpin2 = 0;        // input button 0 (pin number?)
-const int bpin3 = 0;        // input button 0 (pin number?)
-const int outpin0 = 0;      // output pin to LED and Button (pin number?)
-const int outpin1 = 0;      // output pin to LED and Button (pin number?)
-const int outpin2 = 0;      // output pin to LED and Button (pin number?)
-const int outpin3 = 0;      // output pin to LED and Button (pin number?)
-const int outpin4 = 0;      // output pin to LED and Button (pin number?)
-const int outpin5 = 0;      // output pin to LED and Button (pin number?)
-const int outpin6 = 0;      // output pin to LED and Button (pin number?)
-const int outpin7 = 0;      // output pin to LED and Button (pin number?)
-const int timePin = 0;      // time button (pin number?)
-const int modePin = 0;      // mode button (pin number?)
-const int goPin = 0;        // go button   (pin number?)
-const int quitPin = 0;      // quit button (pin number?)
-const int speakerPin = 0;   // speaker  (pin number?)
-const int chipSelect = 0;   // chipSelect for SD (pin number?)
+const int bpin0 = 0;        // input button 0 (digital pin number?)
+const int bpin1 = 0;        // input button 0 (digital pin number?)
+const int bpin2 = 0;        // input button 0 (digital pin number?)
+const int bpin3 = 0;        // input button 0 (digital pin number?)
+const int outpin0 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin1 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin2 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin3 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin4 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin5 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin6 = 0;      // output pin to LED and Button (digital pin number?)
+const int outpin7 = 0;      // output pin to LED and Button (digital pin number?)
+const int timePin = 0;      // time button (digital pin number?)
+const int modePin = 0;      // mode button (digital pin number?)
+const int goPin = 0;        // go button   (digital pin number?)
+const int quitPin = 0;      // quit button (digital pin number?)
+const int speakerPin = 0;   // speaker  (PWM pin number?)
+
+/*
+SD card attached to SPI bus as follows:
+MOSI - pin 11
+MISO - pin 12
+CLK - pin 13
+CS - pin 4
+*/
+const int chipSelect = 0;   // chipSelect for SD (digital pin number?)
 
 int armSelect;                    // used to select active arm
 int ledSelect;                    // used to select active led
@@ -44,7 +52,20 @@ boolean go;                       // alerts that session can begin
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
 
-LiquidCrystal lcd(12, 11, 9, 8, 7, 6, 5, 4, 3, 2);  // pin setup for LCD??? pins?
+/*
+LCD RS pin to digital pin 12
+LCD Enable pin to digital pin 11
+LCD D4 pin to digital pin 5
+LCD D5 pin to digital pin 4
+LCD D6 pin to digital pin 3
+LCD D7 pin to digital pin 2
+LCD R/W pin to ground
+
+10K resistor:
+ends to +5V and ground
+wiper to LCD VO pin (pin 3)
+*/
+LiquidCrystal lcd(12, 11, 9, 8, 7, 6, 5, 4, 3, 2);  // pin setup for LCD??? digital pins?
 
 void setup() {
   pinMode(timePin, INPUT_PULLUP);          // time pin as input with internal pullup
@@ -70,6 +91,8 @@ void setup() {
   pinMode(speakerPin, OUTPUT);             // set speaker pin to output
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
   lcd.begin(20, 4);                        // set up the LCD for 20 columns and 4 rows
+  
+  pinMode(53, OUTPUT);
   
   sessionNum = int(EEPROM.read(0) + EEPROM.read(1) + EEPROM.read(2));
   Serial.begin(9600);

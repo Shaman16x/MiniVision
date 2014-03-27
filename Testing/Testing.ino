@@ -3,16 +3,10 @@
 
 const int bpin0 = 0;        // input button 0 (pin number?)
 const int bpin1 = 0;        // input button 0 (pin number?)
-const int bpin2 = 0;        // input button 0 (pin number?)
-const int bpin3 = 0;        // input button 0 (pin number?)
 const int outpin0 = 0;      // output pin to LED and Button (pin number?)
 const int outpin1 = 0;      // output pin to LED and Button (pin number?)
 const int outpin2 = 0;      // output pin to LED and Button (pin number?)
 const int outpin3 = 0;      // output pin to LED and Button (pin number?)
-const int outpin4 = 0;      // output pin to LED and Button (pin number?)
-const int outpin5 = 0;      // output pin to LED and Button (pin number?)
-const int outpin6 = 0;      // output pin to LED and Button (pin number?)
-const int outpin7 = 0;      // output pin to LED and Button (pin number?)
 const int speakerPin = 0;   // speaker  (pin number?)
 
 int armSelect;                    // used to select active arm
@@ -51,16 +45,10 @@ void setup() {
   Timer3.attachInterrupt(reactionTimer);   // reactionTimer updates reactionTimeLeft every timer3 interrupt
   pinMode(bpin0, INPUT_PULLUP);            // b pin 0 as input with internal pullup
   pinMode(bpin1, INPUT_PULLUP);            // b pin 1 as input with internal pullup
-  pinMode(bpin2, INPUT_PULLUP);            // b pin 2 as input with internal pullup
-  pinMode(bpin3, INPUT_PULLUP);            // b pin 3 as input with internal pullup
   pinMode(outpin0, OUTPUT);                // out pin 0 as output
   pinMode(outpin1, OUTPUT);                // out pin 1 as output
   pinMode(outpin2, OUTPUT);                // out pin 2 as output
   pinMode(outpin3, OUTPUT);                // out pin 3 as output
-  pinMode(outpin4, OUTPUT);                // out pin 4 as output
-  pinMode(outpin5, OUTPUT);                // out pin 5 as output
-  pinMode(outpin6, OUTPUT);                // out pin 6 as output
-  pinMode(outpin7, OUTPUT);                // out pin 7 as output
   pinMode(speakerPin, OUTPUT);             // set speaker pin to output
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
   
@@ -77,8 +65,8 @@ void setDefaults(){
   hits = 0;
   armSelect = 0;
   ledSelect = 0;
-  oldArm = 4;
-  oldLed = 4;
+  oldArm = 2;
+  oldLed = 2;
   Timer1.stop();
   Timer3.stop();
 }
@@ -88,6 +76,7 @@ void loop(){
   setDefaults();
   while(!timeUp){
     if(!started){
+      started = true;
       timeLeft = time*60;        // session time limit is time*60 seconds
       interrupts();
       Timer1.start();
@@ -114,8 +103,7 @@ void runReactionMode(){
   
   Timer3.start();
   // check for correct button
-  while(digitalRead(bpin0) == HIGH && digitalRead(bpin1) == HIGH &&
-        digitalRead(bpin2) == HIGH && digitalRead(bpin3) == HIGH && !reactionTimeUp)
+  while(digitalRead(bpin0) == HIGH && digitalRead(bpin1) == HIGH && !reactionTimeUp)
     delay(20);
   Timer3.stop();
   if(!reactionTimeUp){
@@ -123,24 +111,20 @@ void runReactionMode(){
     playSound();
   }
   delay(20);
-  while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-        digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
+  while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW)
     delay(20);
 }
 
-// FIX EVERYTHING AFTER THIS!!!!!!!!!!!!!!!!!!!!
 void runStandardMode(){
   lightRandomLED();
   
   // check for correct button
-  while(digitalRead(bpin0) == HIGH && digitalRead(bpin1) == HIGH &&
-        digitalRead(bpin2) == HIGH && digitalRead(bpin3) == HIGH)
+  while(digitalRead(bpin0) == HIGH && digitalRead(bpin1) == HIGH)
     delay(20);
   hits++;
   playSound();
   delay(20);
-  while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-        digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
+  while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW)
     delay(20);
 }
 
@@ -148,17 +132,13 @@ void lightRandomLED(){
   //there may be a better way for this
   digitalWrite(outpin0, HIGH);
   digitalWrite(outpin1, HIGH);
-  digitalWrite(outpin2, HIGH);
-  digitalWrite(outpin3, HIGH);
-  digitalWrite(outpin4, LOW);
-  digitalWrite(outpin5, LOW);
-  digitalWrite(outpin6, LOW);
-  digitalWrite(outpin7, LOW);
+  digitalWrite(outpin2, LOW);
+  digitalWrite(outpin3, LOW);
   
   // this makes sure a different led will light every time
   while(armSelect == oldArm && ledSelect == oldLed){
-    armSelect = random(4);
-    ledSelect = random(4);
+    armSelect = random(2);
+    ledSelect = random(2);
   }
   oldArm = armSelect;
   oldLed = ledSelect;
@@ -168,17 +148,9 @@ void lightRandomLED(){
     digitalWrite(outpin0, LOW);
   else if(armSelect == 1)
     digitalWrite(outpin1, LOW);
-  else if(armSelect == 2)
-    digitalWrite(outpin2, LOW);
-  else
-    digitalWrite(outpin3, LOW);
   
   if(ledSelect == 0)
-    digitalWrite(outpin4, HIGH);
+    digitalWrite(outpin2, HIGH);
   else if(ledSelect == 1)
-    digitalWrite(outpin5, HIGH);
-  else if(ledSelect == 2)
-    digitalWrite(outpin6, HIGH);
-  else
-    digitalWrite(outpin7, HIGH);
+    digitalWrite(outpin3, HIGH);
 }
