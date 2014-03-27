@@ -1,8 +1,8 @@
 #include <TimerOne.h>
 #include <TimerThree.h>
 
-const int lightPin = 0;
-const int soundPin = 0;
+const int lightPin = 0;   //digital
+const int soundPin = 11;  //PWM
 
 int counter1 = 0;
 int counter3 = 0;
@@ -11,7 +11,7 @@ boolean sound = false;
 
 void timer1Handler(){
   counter1++;
-  if(counter1 == 30){
+  if(counter1 == 5){
     light = !light;
     counter1 = 0;
   }
@@ -30,15 +30,17 @@ void setup(){
   Timer1.attachInterrupt(timer1Handler);    // sessionTimer updates timeLeft every timer1 interrupt
   Timer3.initialize(1000000);              // sets timer3 for every second
   Timer3.attachInterrupt(timer3Handler);   // reactionTimer updates reactionTimeLeft every timer3 interrupt
+  pinMode(lightPin, OUTPUT);
+  pinMode(soundPin, OUTPUT);
 }
 
 void loop(){
-  if(light);
-    // light
-  else;
-    // turn off
+  if(light)
+    digitalWrite(lightPin, HIGH);
+  else
+    digitalWrite(lightPin, LOW);
   if(sound){
-    // play sound .5 sec
+    tone(soundPin, 1000, 500);
     sound = false;
   }
 }

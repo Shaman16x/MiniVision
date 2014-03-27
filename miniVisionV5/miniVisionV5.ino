@@ -44,7 +44,7 @@ boolean go;                       // alerts that session can begin
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
 
-LiquidCrystal lcd(12, 11, 9, 8, 7, 6, 5, 4, 3, 2);  // pin setup for LCD
+LiquidCrystal lcd(12, 11, 9, 8, 7, 6, 5, 4, 3, 2);  // pin setup for LCD??? pins?
 
 void setup() {
   pinMode(timePin, INPUT_PULLUP);          // time pin as input with internal pullup
@@ -69,7 +69,7 @@ void setup() {
   pinMode(outpin7, OUTPUT);                // out pin 7 as output
   pinMode(speakerPin, OUTPUT);             // set speaker pin to output
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
-  lcd.begin(16, 4);                        // set up the LCD for 16 columns and 4 rows
+  lcd.begin(20, 4);                        // set up the LCD for 20 columns and 4 rows
   
   sessionNum = int(EEPROM.read(0) + EEPROM.read(1) + EEPROM.read(2));
   Serial.begin(9600);
@@ -122,7 +122,7 @@ void setDefaults(){
 
 // 1 loop is full session
 void loop(){
-  /if (SD.begin(chipSelect))
+  if (SD.begin(chipSelect))
     saveToSD();
   setDefaults();
   while(!go)
