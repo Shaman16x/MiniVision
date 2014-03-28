@@ -1,7 +1,7 @@
 #include <TimerOne.h>
 #include <TimerThree.h>
 
-const int lightPin = 0;   //digital
+const int lightPin = 46;   //digital
 const int soundPin = 11;  //PWM
 
 int counter1 = 0;
