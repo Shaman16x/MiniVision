@@ -22,7 +22,6 @@ int mode;                         // mode setting
 boolean started;                  // alerts that session has started
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
-int reactionTimes[1200];
 
 void sessionTimer(){
   timeLeft--;
@@ -30,6 +29,7 @@ void sessionTimer(){
   if(timeLeft == 0){
     if(!timeUp){
       timeUp = true;
+      tone(speakerPin, 500, 1000);
     }
   }
 }
@@ -55,12 +55,14 @@ void setup() {
   pinMode(outpin4, OUTPUT);                // out pin 4 as output
   pinMode(speakerPin, OUTPUT);             // set speaker pin to output
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
+  
+  timeUp = false;
 }
 
 void setDefaults(){
   Timer1.stop();
   Timer3.stop();
-  timeUp = false;
+  //timeUp = false;
   reactionTimeUp = false;
   started = false;
   time = 1;
@@ -126,28 +128,30 @@ void runStandardMode(){
   
   // check for correct button
   if(ledSelect == 0){
-    while(digitalRead(bpin0) == HIGH)
+    while(digitalRead(bpin0) == HIGH && !timeUp)
       delay(20);
   }
   else if(ledSelect == 1){
-    while(digitalRead(bpin1) == HIGH)
+    while(digitalRead(bpin1) == HIGH && !timeUp)
       delay(20);
   }
   else if(ledSelect == 2){
-    while(digitalRead(bpin2) == HIGH)
+    while(digitalRead(bpin2) == HIGH && !timeUp)
       delay(20);
   }
   else{
-    while(digitalRead(bpin3) == HIGH)
+    while(digitalRead(bpin3) == HIGH && !timeUp)
       delay(20);
   }
-  
-  hits++;
-  playSound();
-  delay(20);
-  while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-        digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
+  if(!timeUp){
+    //TRT += counter;
+    hits++;
+    playSound();
     delay(20);
+    while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
+          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
+      delay(20);
+  }
 }
 
 void lightRandomLED(){
@@ -155,11 +159,11 @@ void lightRandomLED(){
   turnOffLEDs();
   
   // this makes sure a different led will light every time
-  while(ledSelect == oldLed){
-    ledSelect = random(4);
-  }
-  oldLed = ledSelect;
-  
+  //while(ledSelect == oldLed){
+  //  ledSelect = random(4);
+  //}
+  //oldLed = ledSelect;
+  ledSelect= (ledSelect+1)%4;
   // light random led
   digitalWrite(outpin0, LOW);
   

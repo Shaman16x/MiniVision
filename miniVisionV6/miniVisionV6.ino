@@ -6,7 +6,6 @@
 #include <EEPROM.h>
 
 SimpleTimer timer;
-volatile int counter = 0;
 
 /*
   EEPROM address 0-2 is for session number
@@ -47,7 +46,8 @@ int ledSelect;                    // used to select active led
 int oldArm;                       // used to not light same led twice in a row
 int oldLed;                       // used to not light same led twice in a row
 volatile int timeLeft;            // used for session timer
-volatile int reactionTimeLeft;    // used for reaction timer
+volatile int reactionTimeLeft;    // used for reaction mode timer
+volatile int counter;             // used for each reaction time
 int sessionNum;                   // session number
 int misses;                       // number of misses in reaction mode
 int hits;                         // number of correct hits
@@ -58,6 +58,13 @@ volatile boolean quit;            // alerts that session has been quit
 boolean go;                       // alerts that session can begin
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
+
+boolean newBest;
+int BSN;
+int BT;
+int BH;
+int BM;
+int BRT;
 
 /*
 LCD RS pin to digital pin 12
@@ -100,9 +107,11 @@ void setup() {
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
   lcd.begin(20, 4);                        // set up the LCD for 20 columns and 4 rows
   
+  newBest = false;
+  
   pinMode(53, OUTPUT);
   
-  sessionNum = (EEPROM.read(0)-'0')*100 + (EEPROM.read(1)-'0')*10 + (EEPROM.read(2)-'0');
+  sessionNum = ((int)(EEPROM.read(0)-'0'))*100 + ((int)(EEPROM.read(1)-'0'))*10 + (int)(EEPROM.read(2)-'0');
   Serial.begin(9600);
 }
 
@@ -119,7 +128,6 @@ void sessionTimer(){
   if(timeLeft == 0){
     if(!timeUp){
       timeUp = true;
-      tone(speakerPin, 500, 1000);
     }
     else{
       quit = true;
@@ -180,8 +188,9 @@ void loop(){
     }
   }
   Timer1.stop();
+  tone(speakerPin, 500, 1000);
   turnOffLEDs();
-  saveSession((13*((sessionNum-1)%200))+16, sessionNum, time, hits, false);
+  saveSession((16*((sessionNum-1)%200))+19, sessionNum, time, hits, misses, false);
   displayEndSession();
   waitForQuit();
   Timer1.stop();
@@ -253,17 +262,27 @@ void displayStartCounter(){
 
 // display ending statistics
 void displayEndSession(){
-  int BSN = (EEPROM.read(3)-'0')*100 + (EEPROM.read(4)-'0')*10 + (EEPROM.read(5)-'0');
-  int BT = (EEPROM.read(6)-'0')*100000 + (EEPROM.read(7)-'0')*10000 + 
-           (EEPROM.read(8)-'0')*1000 + (EEPROM.read(9)-'0')*100 + (EEPROM.read(10)-'0')*10 + (EEPROM.read(11)-'0');
-  int BH = (EEPROM.read(12)-'0')*1000 + (EEPROM.read(13)-'0')*100 +
-           (EEPROM.read(14)-'0')*10 + (EEPROM.read(15)-'0');
-  int BRT = BT/BH;
-  int ART = TRT/(hits+misses);
+  if(newBest){
+    BSN = ((int)(EEPROM.read(3)-'0'))*100 + ((int)(EEPROM.read(4)-'0'))*10 + (int)(EEPROM.read(5)-'0');
+    BT = ((int)(EEPROM.read(6)-'0'))*100000 + ((int)(EEPROM.read(7)-'0'))*10000 + 
+         ((int)(EEPROM.read(8)-'0'))*1000 + ((int)(EEPROM.read(9)-'0'))*100 + 
+         ((int)(EEPROM.read(10)-'0'))*10 + (int)(EEPROM.read(11)-'0');
+    BH = ((int)(EEPROM.read(12)-'0'))*1000 + ((int)(EEPROM.read(13)-'0'))*100 +
+         ((int)(EEPROM.read(14)-'0'))*10 + (int)(EEPROM.read(15)-'0');
+    BM = ((int)(EEPROM.read(16)-'0'))*100 + ((int)(EEPROM.read(17)-'0'))*10 + (int)(EEPROM.read(18)-'0');
+    newBest = false;
+  }
+  int BRT = 0;
+  int ART = 0;
+  if(BH+BM != 0)
+    BRT = BT/(BH+BM);
+  if(hits+misses != 0)
+    ART = TRT/(hits+misses);
   
-  if(ART > BRT){
-    saveSession(3,sessionNum, TRT, hits, true);
+  if(ART > 0 && BRT > 0 && ART < BRT){
+    saveSession(3,sessionNum, TRT, hits, misses, true);
     BRT = ART;
+    newBest = true;
   }
   
   int whole = ART/1000;
@@ -272,15 +291,23 @@ void displayEndSession(){
   int bdec = BRT%1000;
   String sn = String(sessionNum);
   String h = String(hits);
-  String rt = whole + "." + dec;
-  String brt = bwhole + "." + bdec;
+  String art;
+  String brt;
+  if(ART > 0)
+    art = whole + "." + dec;
+  else
+    art = "no hits";
+  if(BRT > 0)
+    brt = bwhole + "." + bdec;
+  else
+    brt = "no best data";
   
   lcd.clear();
   lcd.print("Session #: " + sn);
   lcd.setCursor(0,1);
   lcd.print("Hits: " + h);
   lcd.setCursor(0,2);
-  lcd.print("Reaction: " + rt);
+  lcd.print("Reaction: " + art);
   lcd.setCursor(0,3);
   lcd.print("Best: " + brt);
 }
@@ -300,13 +327,16 @@ void waitForQuit(){
 }
 
 // saves session data to memory
+// 1 set of session data takes 16 bytes
 // sNum takes 3 bytes
 // time takes 6 bytes
 // hits takes 4 bytes
-void saveSession(int loc, int sNum, int time, int hits, boolean best){
+// misses takes 3 bytes
+void saveSession(int loc, int sNum, int time, int hits, int misses, boolean best){
   String sn = String(sNum);
   String t = String(time);
   String h = String(hits);
+  String m = String(misses);
   
   if(sNum < 10)
     sn = "00" + sn;
@@ -314,12 +344,14 @@ void saveSession(int loc, int sNum, int time, int hits, boolean best){
     sn = "0" + sn;
     
   if(time < 10)
-    t = "0000" + t;
+    t = "00000" + t;
   else if(time < 100)
-    t = "000" + t;
+    t = "0000" + t;
   else if(time < 1000)
-    t = "00" + t;
+    t = "000" + t;
   else if(time < 10000)
+    t = "00" + t;
+  else if(time < 100000)
     t = "0" + t;
   
   if(hits < 10)
@@ -329,24 +361,38 @@ void saveSession(int loc, int sNum, int time, int hits, boolean best){
   else if(hits < 1000)
     h = "0" + h;
     
+  if(misses < 10)
+    m = "00" + m;
+  else if(misses < 100)
+    m = "0" + m;
+  
+  // save the session # if not saving best session
   if(!best){
     EEPROM.write(0,sn.charAt(0));
     EEPROM.write(1,sn.charAt(1));
     EEPROM.write(2,sn.charAt(2));
   }
   
+  // snum 3 bytes
   EEPROM.write(loc,sn.charAt(0));
   EEPROM.write(loc+1,sn.charAt(1));
   EEPROM.write(loc+2,sn.charAt(2));
+  // time 6 bytes
   EEPROM.write(loc+3,t.charAt(0));
   EEPROM.write(loc+4,t.charAt(1));
   EEPROM.write(loc+5,t.charAt(2));
   EEPROM.write(loc+6,t.charAt(3));
   EEPROM.write(loc+7,t.charAt(4));
-  EEPROM.write(loc+8,h.charAt(0));
-  EEPROM.write(loc+9,h.charAt(1));
-  EEPROM.write(loc+10,h.charAt(2));
-  EEPROM.write(loc+11,h.charAt(3));
+  EEPROM.write(loc+8,t.charAt(5));
+  // hits 4 bytes
+  EEPROM.write(loc+9,h.charAt(0));
+  EEPROM.write(loc+10,h.charAt(1));
+  EEPROM.write(loc+11,h.charAt(2));
+  EEPROM.write(loc+12,h.charAt(3));
+  // misses 3 bytes
+  EEPROM.write(loc+13,h.charAt(0));
+  EEPROM.write(loc+14,h.charAt(1));
+  EEPROM.write(loc+15,h.charAt(2));
 }
 
 // save data to SD card
