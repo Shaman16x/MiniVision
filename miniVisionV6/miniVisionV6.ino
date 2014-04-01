@@ -79,7 +79,8 @@ LCD R/W pin to ground
 ends to +5V and ground
 wiper to LCD VO pin (pin 3)
 */
-LiquidCrystal lcd(12, 11, 9, 8, 7, 6, 5, 4, 3, 2);  // pin setup for LCD??? digital pins?
+//LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
+LiquidCrystal lcd(0, 0, 0, 0, 0, 0);  // digital pins?
 
 void setup() {
   pinMode(timePin, INPUT_PULLUP);          // time pin as input with internal pullup
