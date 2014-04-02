@@ -105,24 +105,48 @@ void playSound(){
   tone(speakerPin, 1000, 250);
 }
 
-
+// runs reaction mode
+// each iteration lights 1 led
 void runReactionMode(){
   lightRandomLED();
   
   Timer3.start();
   // check for correct button
-  while(digitalRead(bpin0) == HIGH && digitalRead(bpin1) == HIGH && !reactionTimeUp)
-    delay(20);
-  Timer3.stop();
-  if(!reactionTimeUp){
-    hits++;
-    playSound();
+  if(ledSelect == 0){
+    while(digitalRead(bpin0) == HIGH && !reactionTimeUp && !timeUp)
+      delay(20);
   }
-  delay(20);
-  while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW)
+  else if(ledSelect == 1){
+    while(digitalRead(bpin1) == HIGH && !reactionTimeUp && !timeUp)
+      delay(20);
+  }
+  else if(ledSelect == 2){
+    while(digitalRead(bpin2) == HIGH && !reactionTimeUp && !timeUp)
+      delay(20);
+  }
+  else{
+    while(digitalRead(bpin3) == HIGH && !reactionTimeUp && !timeUp)
+      delay(20);
+  }
+  if(!timeUp){
+    //TRT += counter;
+    Timer3.stop();
+    if(!reactionTimeUp){
+      hits++;
+      playSound();
+    }
+    else{
+      //misses++;
+    }
     delay(20);
+    while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
+          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
+      delay(20);
+  }
 }
 
+// runs standard mode
+// each iteration lights 1 led
 void runStandardMode(){
   lightRandomLED();
   
