@@ -2,6 +2,16 @@
 #include <TimerOne.h>
 #include <TimerThree.h>
 
+/*
+  This is where the user can program their own time limits
+  for session time and reaction time
+*/
+
+int sessionTimes[] = {1, 3, 5};
+int reactionTimes[] = {3, 2, 1};
+int sIndex;
+int rIndex;
+
 const int bpin0 = 40;        // input button 0 (digital pin number?)
 const int bpin1 = 41;        // input button 0 (digital pin number?)
 const int bpin2 = 42;        // input button 0 (digital pin number?)
@@ -15,10 +25,10 @@ const int timePin = 6;      // time button (digital pin number?)
 const int modePin = 7;      // mode button (digital pin number?)
 const int goPin = 5;        // go button   (digital pin number?)
 const int quitPin = 4;      // quit button (digital pin number?)
-//const int reactionPin = 0;  // reaction timer buttom (digital pin number?)
+const int reactionPin = 8;  // reaction timer buttom (digital pin number?)
 const int speakerPin = 2;   // speaker  (PWM pin number?)
 
-int TRT;                          // used to count reaction times
+long TRT;                          // used to count reaction times
 int maxReactionTime = 3000;       // max reaction reaction time
 int ledSelect;                    // used to select active led
 int oldLed;                       // used to not light same led twice in a row
@@ -32,7 +42,7 @@ int time;                         // time setting
 int mode;                         // mode setting
 boolean started;                  // alerts that session has started
 volatile boolean quit;            // alerts that session has been quit
-boolean go;                       // alerts that session can begin
+volatile boolean go;                       // alerts that session can begin
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
 
@@ -65,10 +75,10 @@ void setup() {
   pinMode(modePin, INPUT_PULLUP);          // mode pin as input with internal pullup
   pinMode(goPin, INPUT_PULLUP);            // go pin as input with internal pullup
   pinMode(quitPin, INPUT_PULLUP);          // quit pin as input with internal pullup
-  //pinMode(reactionPin, INPUT_PULLUP);      // reaction pin as input with internal pullup
+  pinMode(reactionPin, INPUT_PULLUP);      // reaction pin as input with internal pullup
   Timer1.initialize(1000000);              // sets timer1 for every second
   Timer1.attachInterrupt(sessionTimer);    // sessionTimer updates timeLeft every timer1 interrupt
-  Timer3.initialize(1000);                 // sets timer3 for every ms
+  Timer3.initialize(10000);                 // sets timer3 for every 10 ms
   Timer3.attachInterrupt(reactionTimer);   // reactionTimer updates reactionTimeLeft every timer3 interrupt
   pinMode(bpin0, INPUT_PULLUP);            // b pin 0 as input with internal pullup
   pinMode(bpin1, INPUT_PULLUP);            // b pin 1 as input with internal pullup
@@ -87,10 +97,6 @@ void setup() {
   
   pinMode(53, OUTPUT);
   Serial.begin(9600);
-}
-
-void miliCounter(){
-  counter++;
 }
 
 // timer1 interrupt handler
@@ -121,10 +127,13 @@ void reactionTimer(){
 
 // restores default values for starting a session
 void setDefaults(){
+  sIndex = 0;
+  rIndex = 0;
+  time = sessionTimes[0];
+  reactionTimeLeft = reactionTimes[0];
   go = false;
   change = true;
   timeUp = false;
-  reactionTimeLeft = 3;
   reactionTimeUp = false;
   started = false;
   quit = false;
@@ -147,93 +156,95 @@ void loop(){
     checkSettings();
   while(!timeUp){
     if(!started){
-      timeLeft = time*60;        // session time limit is time*60 seconds
+      timeLeft = time*20+1;        // session time limit is time*60 seconds
       displayStartCounter();
       Timer1.start();
     }
     change = true;
     counter = 0;
+    //Timer3.start();
     if(mode == 0)
       runStandardMode();
     else{
       reactionTimeUp = false;
+      reactionTimeLeft = reactionTimes[rIndex];
       runReactionMode();
     }
+    //Timer3.stop();
   }
   Timer1.stop();
   tone(speakerPin, 500, 1000);
   turnOffLEDs();
-  displayEndSession();
-  waitForQuit();
-  Timer1.stop();
+  if(!quit){
+    displayEndSession();
+    waitForQuit();
+    Timer1.stop();
+  }
 }
 
 // checks the settings buttons and updates display
 void checkSettings(){
   if(digitalRead(timePin) == LOW){
     change = true;
-    time+=2;
-    if(time > 5)
-      time = 1;
-    delay(20);
+    sIndex = (sIndex+1)%((sizeof(sessionTimes)/sizeof(int)));
+    time = sessionTimes[sIndex];
+    delay(10);
     while(digitalRead(timePin) == LOW)
-      delay(20);
+      delay(10);
   }
   
   if(digitalRead(modePin) == LOW){
     change = true;
     mode = (-1)*mode + 1;
-    delay(20);
+    delay(10);
     while(digitalRead(modePin) == LOW)
-      delay(20);
+      delay(10);
   }
   
   if(digitalRead(goPin) == LOW){
     change = true;
     go = true;
-    delay(20);
+    delay(10);
     while(digitalRead(goPin) == LOW)
-      delay(20);
+      delay(10);
   }
   
-  /*if(mode == 1){
+  if(mode == 1){
     if(digitalRead(reactionPin) == LOW){
-      reactionTimeLeft += 1;
-      if(reactionTimeLeft > 3)
-        reactionTimeLeft = 1;
-      delay(20);
+      change = true;
+      rIndex = (rIndex+1)%((sizeof(reactionTimes)/sizeof(int)));
+      reactionTimeLeft = reactionTimes[rIndex];
+      delay(10);
       while(digitalRead(reactionPin) == LOW)
-        delay(20);
+        delay(10);
     }
-  }*/
+  }
   
   updateDisplay();
 }
 
 // update the lcd display
 void updateDisplay(){
-    
-  
   if(!started){
     if(change){
       lcd.clear();
-    change = false;
-    if(mode == 0)
-      lcd.print("Mode: Standard");
-    else
-      lcd.print("Mode: Reaction");
-    lcd.setCursor(0,1);
-    String s2 = "Time: ";
-    String s3 = s2 + time + " min(s)";
-    lcd.print(s3);
-    if(mode == 1){
-      lcd.setCursor(0,2);
-      String s4 = "Reaction Time: ";
-      String s5 = s4 + reactionTimeLeft + " sec";
-      lcd.print(s5);
+      change = false;
+      if(mode == 0)
+        lcd.print("Mode: Standard");
+      else
+        lcd.print("Mode: Reaction");
+      lcd.setCursor(0,1);
+      String s2 = "Time: ";
+      String s3 = s2 + time + " min(s)";
+      lcd.print(s3);
+      if(mode == 1){
+        lcd.setCursor(0,2);
+        String s4 = "Reaction Time: ";
+        String s5 = s4 + reactionTimeLeft + " sec";
+        lcd.print(s5);
+      }
     }
   }
-    }
   else{
     lcd.clear();
     lcd.print(timeLeft);
@@ -278,7 +289,7 @@ void displayEndSession(){
   if(BH+BM != 0)
     BRT = BT/(BH+BM);*/
   int ART = 0;
-  if((hits+misses) != 0)
+  if(hits != 0)
     ART = TRT/(hits+misses);
   
   /*if(ART > 0 && BRT > 0 && ART < BRT){
@@ -293,12 +304,14 @@ void displayEndSession(){
   //int bdec = BRT%1000;
   String sn = String(sessionNum);
   String h = String(hits);
+  String m = String(misses);
   String art;
   //String brt;
   if(ART > 0){
     art = String(whole);
     art += ".";
     art += String(dec);
+    art += " s";
   }
   else
     art = "no hits";
@@ -311,6 +324,7 @@ void displayEndSession(){
   lcd.print("Session #: " + sn);
   lcd.setCursor(0,1);
   lcd.print("Hits: " + h);
+  lcd.print(", Miss: " + m);
   lcd.setCursor(0,2);
   lcd.print("Reaction: " + art);
   //lcd.setCursor(0,3);
@@ -322,13 +336,13 @@ void waitForQuit(){
   timeLeft = 120;
   Timer1.start();
   while(digitalRead(quitPin) == HIGH && !quit)
-    delay(20);
+    delay(10);
   Timer1.stop();
-  delay(20);
+  delay(10);
   lcd.clear();
   if(!quit)
     while(digitalRead(quitPin) == LOW)
-      delay(20);
+      delay(10);
 }
 
 void turnOffLEDs(){
@@ -347,32 +361,45 @@ void playSound(){
 // each iteration lights 1 led
 void runReactionMode(){
   lightRandomLED();
-  
   Timer3.start();
   // check for correct button
   if(ledSelect == 0){
     while(digitalRead(bpin0) == HIGH && !reactionTimeUp && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
   else if(ledSelect == 1){
     while(digitalRead(bpin1) == HIGH && !reactionTimeUp && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
   else if(ledSelect == 2){
     while(digitalRead(bpin2) == HIGH && !reactionTimeUp && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
   else{
     while(digitalRead(bpin3) == HIGH && !reactionTimeUp && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
-  if(!timeUp){
-    TRT += counter;
-    Timer3.stop();
+  Timer3.stop();
+  if(quit)
+    timeUp = true;
+  else if(!timeUp){
+    TRT += counter*10;
     if(!reactionTimeUp){
       hits++;
       playSound();
@@ -380,10 +407,9 @@ void runReactionMode(){
     else{
       misses++;
     }
-    delay(20);
+    delay(10);
     while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
-      delay(20);
+          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW);
   }
 }
 
@@ -391,36 +417,49 @@ void runReactionMode(){
 // each iteration lights 1 led
 void runStandardMode(){
   lightRandomLED();
-  
+  Timer3.start();
   // check for correct button
   if(ledSelect == 0){
     while(digitalRead(bpin0) == HIGH && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
   else if(ledSelect == 1){
     while(digitalRead(bpin1) == HIGH && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
   else if(ledSelect == 2){
     while(digitalRead(bpin2) == HIGH && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
   else{
     while(digitalRead(bpin3) == HIGH && !timeUp){
-      delay(20);
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        break;
+      }
     }
   }
+  if(quit)
+    timeUp = true;
   if(!timeUp){
-    TRT += counter;
+    TRT += counter*10;
     hits++;
     playSound();
-    delay(20);
+    delay(10);
     while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
-      delay(20);
+          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW);
   }
 }
 
