@@ -1,5 +1,6 @@
 #include <SD.h>
 
+boolean card,initial;
 File myFile;
 
 void setup()
@@ -11,56 +12,55 @@ void setup()
   }
 
 
-  Serial.print("Initializing SD card...");
+  
   // On the Ethernet Shield, CS is pin 4. It's set as an output by default.
   // Note that even if it's not used as the CS pin, the hardware SS pin 
   // (10 on most Arduino boards, 53 on the Mega) must be left as an output 
   // or the SD library functions will not work. 
   pinMode(53, OUTPUT);
-
-  if (!SD.begin(53)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");
-
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists.");
-  }
-  else {
-    Serial.println("example.txt doesn't exist.");
-  }
-
-  // open a new file and immediately close it:
-  myFile = myFile = SD.open("example.txt", FILE_WRITE);
-  if(myFile){
-    myFile.println("hello");
-    myFile.close();
-  }
+  pinMode(7,INPUT_PULLUP);
+  pinMode(3,INPUT_PULLUP);
+  card = false;
+  initial = false;
   
-  myFile = SD.open("example.txt");
-  if(myFile){
-  while (myFile.available()) {
-    	Serial.write(myFile.read());
-    }
-    myFile.close();
-  }
-  else{
-    Serial.println("this did not work");
-  }
-  
-  
-
-  // Check to see if the file exists: 
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists.");
-  }
-  else {
-    Serial.println("example.txt doesn't exist.");  
-  }
 }
 
 void loop()
 {
-  // nothing happens after setup finishes.
+  delay(1000);
+  while(digitalRead(7) == HIGH);//{
+    //if(card){
+      //if(digitalRead(3) == HIGH)
+        //card = false;
+    //}
+  //}
+  
+  
+  
+  if(!initial){
+    Serial.print("Initializing SD card...");
+  if (!SD.begin(53)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  initial = true;
+  card = true;
+  Serial.println("initialization done.");
+  }
+  
+  if(card){
+  if(!SD.exists("test.txt")){
+    Serial.println("no file");
+  }
+  myFile = SD.open("test.txt", FILE_WRITE);
+  if(myFile){
+    myFile.println("hello");
+    myFile.close();
+    Serial.println("wrote to card");
+  }
+  else
+    Serial.println("file not found");
+  }
+  else
+    Serial.println("do not remove card");
 }
