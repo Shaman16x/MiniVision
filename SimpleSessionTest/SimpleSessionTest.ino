@@ -109,7 +109,7 @@ void setup() {
   
   BSN = ((int)EEPROM.read(3))*256 + (int)EEPROM.read(4);
   BMD = (long)EEPROM.read(5);
-  BTRT = (((long)EEPROM.read(6)) << 16) + (((long)EEPROM.read(7)) << 8) + (long)EEPROM.read(8);
+  BTRT = (((long)EEPROM.read(6))<<16) + (((long)EEPROM.read(7))<<8) + (long)EEPROM.read(8);
   BH = ((int)EEPROM.read(9))*256 + (int)EEPROM.read(10);
   BM = ((int)EEPROM.read(11))*256 + (int)EEPROM.read(12);
   BT = (int)EEPROM.read(13);
@@ -273,7 +273,7 @@ void computeSessionStats(){
 
 void dumpEEPROMToSD(){
   int adr, val1, val2, val4, val5, val6;
-  long val3;
+  long reactionTime;
   String s,v1,v2,v3,v4,v5,v6;
   if(numSavedSessions <= 250)
     adr = 14;
@@ -287,13 +287,19 @@ void dumpEEPROMToSD(){
       adr = 14;
     val1 = ((int)EEPROM.read(adr))*256 + (int)EEPROM.read(adr+1);
     val2 = (int)EEPROM.read(adr+2);
-    val3 = (((long)EEPROM.read(adr+3))<<16) + (((long)EEPROM.read(adr+4))<<8) + (long)EEPROM.read(adr+5);
+    reactionTime = (((long)EEPROM.read(adr+3))<<16) + (((long)EEPROM.read(adr+4))<<8) + (long)EEPROM.read(adr+5);
     val4 = ((int)EEPROM.read(adr+6))*256 + (int)EEPROM.read(adr+7);
     val5 = ((int)EEPROM.read(adr+8))*256 + (int)EEPROM.read(adr+9);
     val6 = (int)EEPROM.read(adr+10);
     v1 = String(val1);
-    v2 = String(val2);
-    v3 = String(val3);
+    if(val2 == 0)
+      v2 = "Standard";
+    else
+      v2 = "Reaction";
+    if(val4 == 0)
+      v3 = "not hits";
+    else
+      v3 = String(reactionTime/1000) + "." + String(reactionTime%1000) + " s";
     v4 = String(val4);
     v5 = String(val5);
     v6 = String(val6);
@@ -351,7 +357,7 @@ void saveSession(){
     lcd.setCursor(0,++row);
     lcd.print("wrote to EEPROM");
   }
-  while(digitalRead(7) == HIGH);
+  while(digitalRead(5) == HIGH);
 }
 
 void saveToEEPROM(boolean best){
@@ -359,9 +365,9 @@ void saveToEEPROM(boolean best){
     EEPROM.write(3,(BSN/256));
     EEPROM.write(4,(BSN%256));
     EEPROM.write(5,BMD);
-    EEPROM.write(6,(BTRT>>16)&&0xFF);
-    EEPROM.write(7,(BTRT>>8)&&0xFF);
-    EEPROM.write(8,BTRT&&0xFF);
+    EEPROM.write(6,(BTRT>>16)&0xFF);
+    EEPROM.write(7,(BTRT>>8)&0xFF);
+    EEPROM.write(8,BTRT&0xFF);
     EEPROM.write(9,BH/256);
     EEPROM.write(10,BH%256);
     EEPROM.write(11,BM/256);
@@ -373,9 +379,9 @@ void saveToEEPROM(boolean best){
     EEPROM.write(loc,sessionNum/256);
     EEPROM.write(loc+1,sessionNum%256);
     EEPROM.write(loc+2,mode);
-    EEPROM.write(loc+3,(TRT>>16)&&0xFF);
-    EEPROM.write(loc+4,(TRT>>8)&&0xFF);
-    EEPROM.write(loc+5,(TRT&&0xFF));
+    EEPROM.write(loc+3,(TRT>>16)&0xFF);
+    EEPROM.write(loc+4,(TRT>>8)&0xFF);
+    EEPROM.write(loc+5,(TRT&0xFF));
     EEPROM.write(loc+6,hits/256);
     EEPROM.write(loc+7,hits%256);
     EEPROM.write(loc+8,misses/256);
@@ -621,7 +627,7 @@ void runStandardMode(){
     }
   }
   */
-  while(digitalRead(22) == HIGH && !timeUp){
+  while(digitalRead(5) == HIGH && !timeUp){
     if(digitalRead(quitPin) == LOW){
       quit = true;
       break;
