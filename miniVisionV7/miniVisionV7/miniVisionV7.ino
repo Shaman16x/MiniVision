@@ -13,21 +13,22 @@ int reactionTimes[] = {3, 2, 1};
 int sIndex;
 int rIndex;
 
-const int bpin0 = 30;             // input button 0 (digital pin number?)
-const int bpin1 = 33;             // input button 1 (digital pin number?)
-const int bpin2 = 32;             // input button 2 (digital pin number?)
-const int bpin3 = 35;             // input button 3 (digital pin number?)
-const int bpin4 = 34;             // input button 4 (digital pin number?)
+const int b1 = 30;             // input button 0 (digital pin number?)
+const int b2 = 33;             // input button 1 (digital pin number?)
+const int b3 = 32;             // input button 2 (digital pin number?)
+const int b4 = 35;             // input button 3 (digital pin number?)
+const int b5 = 34;             // input button 4 (digital pin number?)
 
-const int outpin0 = 27;           // output pin to LED and Button (digital pin number?)
-const int outpin1 = 26;           // output pin to LED and Button (digital pin number?)
-const int outpin2 = 29;           // output pin to LED and Button (digital pin number?)
-const int outpin3 = 28;           // output pin to LED and Button (digital pin number?)
-const int outpin4 = 31;           // output pin to LED and Button (digital pin number?)
-const int outpin5 = 22;           // output pin to LED and Button (digital pin number?)
-const int outpin6 = 23;           // output pin to LED and Button (digital pin number?)
-const int outpin7 = 24;           // output pin to LED and Button (digital pin number?)
-const int outpin8 = 25;           // output pin to LED and Button (digital pin number?)
+const int LED1 = 27;           // output pin to LED and Button (digital pin number?)
+const int LED2 = 26;           // output pin to LED and Button (digital pin number?)
+const int LED3 = 29;           // output pin to LED and Button (digital pin number?)
+const int LED4 = 28;           // output pin to LED and Button (digital pin number?)
+const int LED5 = 31;           // output pin to LED and Button (digital pin number?)
+
+const int bottom = 25;           // output pin to LED and Button (digital pin number?)
+const int right = 22;           // output pin to LED and Button (digital pin number?)
+const int left = 24;           // output pin to LED and Button (digital pin number?)
+const int top = 23;           // output pin to LED and Button (digital pin number?)
 
 const int timePin = 49;            // time button (digital pin number?)
 const int modePin = 46;            // mode button (digital pin number?)
@@ -93,22 +94,29 @@ void setup() {
   pinMode(reactionPin, INPUT_PULLUP);      // reaction pin as input with internal pullup
   Timer1.initialize(1000);                 // sets timer1 for every ms
   Timer1.attachInterrupt(sessionTimer);    // sessionTimer updates timeLeft every timer1 interrupt
-  pinMode(bpin0, INPUT_PULLUP);            // b pin 0 as input with internal pullup
-  pinMode(bpin1, INPUT_PULLUP);            // b pin 1 as input with internal pullup
-  pinMode(bpin2, INPUT_PULLUP);            // b pin 2 as input with internal pullup
-  pinMode(bpin3, INPUT_PULLUP);            // b pin 3 as input with internal pullup
-  pinMode(outpin0, OUTPUT);                // out pin 0 as output
-  pinMode(outpin1, OUTPUT);                // out pin 1 as output
-  pinMode(outpin2, OUTPUT);                // out pin 2 as output
-  pinMode(outpin3, OUTPUT);                // out pin 3 as output
-  pinMode(outpin4, OUTPUT);                // out pin 4 as output
+  pinMode(b1, INPUT_PULLUP);            // b pin 0 as input with internal pullup
+  pinMode(b2, INPUT_PULLUP);            // b pin 1 as input with internal pullup
+  pinMode(b3, INPUT_PULLUP);            // b pin 2 as input with internal pullup
+  pinMode(b4, INPUT_PULLUP);            // b pin 3 as input with internal pullup
+  pinMode(b5, INPUT_PULLUP);
+  
+  pinMode(LED1, OUTPUT);                // out pin 0 as output
+  pinMode(LED2, OUTPUT);                // out pin 1 as output
+  pinMode(LED3, OUTPUT);                // out pin 2 as output
+  pinMode(LED4, OUTPUT);                // out pin 3 as output
+  pinMode(LED5, OUTPUT);                // out pin 4 as output
+  
+  pinMode(bottom, OUTPUT);
+  pinMode(right, OUTPUT);
+  pinMode(left, OUTPUT);
+  pinMode(top, OUTPUT);
 
   pinMode(speakerPin, OUTPUT);             // set speaker pin to output
   pinMode(cardDetectPin, INPUT_PULLUP);
   attachInterrupt(5, cdisr, RISING);
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
   lcd.begin(20, 4);                        // set up the LCD for 20 columns and 4 rows
-  
+  lcd.clear();
   newBest = false;
   cardDetect = false;
   initial = false;
@@ -125,6 +133,10 @@ void setup() {
   
   pinMode(53, OUTPUT);
   
+  ledSelect = 0;
+  oldLed = 5;
+  armSelect = 0;
+  oldArm = 4;
 }
 
 void cdisr(){
@@ -178,10 +190,7 @@ void setDefaults(){
   mode = 0;
   hits = 0;
   misses = 0;
-  ledSelect = 0;
-  oldLed = 5;
-  armSelect = 0;
-  oldArm = 4;
+  
   TRT = 0;
   Timer1.stop();
   sessionNum++;
@@ -194,7 +203,7 @@ void loop(){
     checkSettings();
   while(!timeUp){
     if(!started){
-      timeLeft = time*60;        // session time limit is time*60 seconds
+      timeLeft = time*10;        // session time limit is time*60 seconds
       displayStartCounter();
     }
     //change = false;
@@ -352,7 +361,11 @@ void saveSession(){
     if(sessionFile){
       lcd.setCursor(0,++row);
       lcd.print("card found");
-      sessionFile.println(stats);
+      if(sessionFile.println(stats) == 0){
+        lcd.setCursor(0,++row);
+        lcd.print("write failed");
+        delay(1000);
+      }
       sessionFile.close();
     }
     lcd.setCursor(0,++row);
@@ -367,7 +380,6 @@ void saveSession(){
     lcd.setCursor(0,++row);
     lcd.print("wrote to EEPROM");
   }
-  while(digitalRead(5) == HIGH);
 }
 
 void saveToEEPROM(boolean best){
@@ -521,15 +533,16 @@ void waitForQuit(){
 }
 
 void turnOffLEDs(){
-  digitalWrite(outpin0, HIGH);
-  digitalWrite(outpin1, HIGH);
-  digitalWrite(outpin2, HIGH);
-  digitalWrite(outpin3, HIGH);
-  digitalWrite(outpin4, LOW);
-  digitalWrite(outpin5, LOW);
-  digitalWrite(outpin6, LOW);
-  digitalWrite(outpin7, LOW);
-  digitalWrite(outpin8, LOW);
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
 }
 
 void playSound(){
@@ -547,7 +560,7 @@ void runReactionMode(){
   Timer1.start();
   // check for correct button
   if(ledSelect == 0){
-    while(digitalRead(bpin0) == HIGH && !reactionTimeUp && !timeUp){
+    while(digitalRead(b1) == HIGH && !reactionTimeUp && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -555,7 +568,7 @@ void runReactionMode(){
     }
   }
   else if(ledSelect == 1){
-    while(digitalRead(bpin1) == HIGH && !reactionTimeUp && !timeUp){
+    while(digitalRead(b2) == HIGH && !reactionTimeUp && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -563,7 +576,7 @@ void runReactionMode(){
     }
   }
   else if(ledSelect == 2){
-    while(digitalRead(bpin2) == HIGH && !reactionTimeUp && !timeUp){
+    while(digitalRead(b3) == HIGH && !reactionTimeUp && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -571,7 +584,7 @@ void runReactionMode(){
     }
   }
   else if(ledSelect == 3){
-    while(digitalRead(bpin3) == HIGH && !reactionTimeUp && !timeUp){
+    while(digitalRead(b4) == HIGH && !reactionTimeUp && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -579,7 +592,7 @@ void runReactionMode(){
     }
   }
   else{
-    while(digitalRead(bpin4) == HIGH && !reactionTimeUp && !timeUp){
+    while(digitalRead(b5) == HIGH && !reactionTimeUp && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -598,9 +611,8 @@ void runReactionMode(){
     else{
       misses++;
     }
-    delay(20);
-    while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW  || digitalRead(bpin4) == LOW);
+    while(digitalRead(b1) == LOW || digitalRead(b2) == LOW ||
+          digitalRead(b3) == LOW || digitalRead(b4) == LOW  || digitalRead(b5) == LOW);
     
   }
 }
@@ -616,7 +628,7 @@ void runStandardMode(){
   // check for correct button
   
   if(ledSelect == 0){
-    while(digitalRead(bpin0) == HIGH && !timeUp){
+    while(digitalRead(b1) == HIGH && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -624,7 +636,7 @@ void runStandardMode(){
     }
   }
   else if(ledSelect == 1){
-    while(digitalRead(bpin1) == HIGH && !timeUp){
+    while(digitalRead(b2) == HIGH && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -632,7 +644,7 @@ void runStandardMode(){
     }
   }
   else if(ledSelect == 2){
-    while(digitalRead(bpin2) == HIGH && !timeUp){
+    while(digitalRead(b3) == HIGH && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -640,7 +652,7 @@ void runStandardMode(){
     }
   }
   else if(ledSelect == 3){
-    while(digitalRead(bpin3) == HIGH && !timeUp){
+    while(digitalRead(b4) == HIGH && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -648,7 +660,7 @@ void runStandardMode(){
     }
   }
   else{
-    while(digitalRead(bpin4) == HIGH && !timeUp){
+    while(digitalRead(b5) == HIGH && !timeUp){
       if(digitalRead(quitPin) == LOW){
         quit = true;
         break;
@@ -663,9 +675,8 @@ void runStandardMode(){
     TRT += counter;
     hits++;
     playSound();
-    delay(20);
-    while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
-          digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW || digitalRead(bpin4) == LOW);
+    while(digitalRead(b1) == LOW || digitalRead(b2) == LOW ||
+          digitalRead(b3) == LOW || digitalRead(b4) == LOW || digitalRead(b5) == LOW);
   }
 }
 
@@ -673,6 +684,7 @@ void runStandardMode(){
 void lightRandomLED(){
   //there may be a better way for this
   turnOffLEDs();
+  
   
   // this makes sure a different led will light every time
   while(ledSelect == oldLed && armSelect == oldArm){
@@ -682,26 +694,36 @@ void lightRandomLED(){
   oldLed = ledSelect;
   oldArm = armSelect;
   
-  // light random led
-  if(armSelect == 0)
-    digitalWrite(outpin0, LOW);
-  else if(armSelect == 1)
-    digitalWrite(outpin1, LOW);
-  else if(armSelect == 2)
-    digitalWrite(outpin2, LOW);
-  else
-    digitalWrite(outpin3, LOW);
+  /*
+  ledSelect++;
+  if(ledSelect == 5){
+    ledSelect = 0;
+    armSelect++;
+    if(armSelect == 4)
+      armSelect = 0;
+  }
+  */
   
+  // light random led
   if(ledSelect == 0)
-    digitalWrite(outpin4, HIGH);
+    digitalWrite(LED1, HIGH);
   else if(ledSelect == 1)
-    digitalWrite(outpin5, HIGH);
+    digitalWrite(LED2, HIGH);
   else if(ledSelect == 2)
-    digitalWrite(outpin6, HIGH);
+    digitalWrite(LED3, HIGH);
   else if(ledSelect == 3)
-    digitalWrite(outpin7, HIGH);
+    digitalWrite(LED4, HIGH);
   else
-    digitalWrite(outpin8, HIGH);
+    digitalWrite(LED5, HIGH);
+    
+  if(armSelect == 0)
+    digitalWrite(bottom, LOW);
+  else if(armSelect == 1)
+    digitalWrite(right, LOW);
+  else if(armSelect == 2)
+    digitalWrite(left, LOW);
+  else
+    digitalWrite(top, LOW);
 }
 
 
