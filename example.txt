@@ -1,0 +1,15 @@
+
+
+
+
+.
+.
+.
+Session # 34, Mode: Standard, Average Reaction Time: 1.13 s, Hits: 6, Misses: 0, Time: 1 min
+Session # 35, Mode: Standard, Average Reaction Time: 1.24 s, Hits: 20, Misses: 0, Time: 3 min
+Session # 36, Mode: Reaction, Average Reaction Time: 1.46 s, Hits: 15, Misses: 4, Time: 3 min, Reaction Length: 3 s
+Session # 37, Mode: Reaction, Average Reaction Time: 1.05 s, Hits: 18, Misses: 3, Time: 1 min, Reaction Length: 2 s
+Session # 38, Mode: Standard, Average Reaction Time: 1.04 s, Hits: 30, Misses: 0, Time: 5 min
+.
+.
+.
