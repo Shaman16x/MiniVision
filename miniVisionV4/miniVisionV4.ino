@@ -25,6 +25,8 @@ const int timePin = 0;      // time button (pin number?)
 const int modePin = 0;      // mode button (pin number?)
 const int goPin = 0;        // go button   (pin number?)
 const int quitPin = 0;      // quit button (pin number?)
+const int speakerPin = 0;   // speaker  (pin number?)
+const int chipSelect = 0;   // chipSelect for SD (pin number?)
 
 int armSelect;                    // used to select active arm
 int ledSelect;                    // used to select active led
@@ -42,7 +44,7 @@ boolean go;                       // alerts that session can begin
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
 
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);  // pin setup for LCD
+LiquidCrystal lcd(12, 11, 9, 8, 7, 6, 5, 4, 3, 2);  // pin setup for LCD
 
 void setup() {
   pinMode(timePin, INPUT_PULLUP);          // time pin as input with internal pullup
@@ -65,12 +67,11 @@ void setup() {
   pinMode(outpin5, OUTPUT);                // out pin 5 as output
   pinMode(outpin6, OUTPUT);                // out pin 6 as output
   pinMode(outpin7, OUTPUT);                // out pin 7 as output
+  pinMode(speakerPin, OUTPUT);             // set speaker pin to output
   randomSeed(analogRead(0));               // sets seed from random floating pin 0
-  lcd.begin(16, 2);                        // set up the LCD's number of columns and rows
+  lcd.begin(16, 4);                        // set up the LCD for 16 columns and 4 rows
   
-  sessionNum = EEPROM.read(1);
-  if(sessionNum == 255)
-    sessionNum = 0;
+  sessionNum = int(EEPROM.read(0) + EEPROM.read(1) + EEPROM.read(2));
   Serial.begin(9600);
 }
 
@@ -121,6 +122,8 @@ void setDefaults(){
 
 // 1 loop is full session
 void loop(){
+  if (SD.begin(chipSelect))
+    saveToSD();
   setDefaults();
   while(!go)
     checkSettings();
@@ -141,7 +144,7 @@ void loop(){
   }
   noInterrupts();
   Timer1.stop();
-  saveSession();
+  saveSession((8*((sessionNum-1)%200))+11, sessionNum, time, hits, false);
   interrupts();
   displayEndSession();
   waitForQuit();
@@ -214,33 +217,35 @@ void displayStartCounter(){
 
 // display ending statistics
 void displayEndSession(){
-  int best = EEPROM.read(0);
-  int bestTime = best%10;
-  int bestHits = best/10;
-  double bestReactionTime = bestHits/(bestTime*60.0);
-  double reactionTime = hits/(time*60.0);
-  if(reactionTime < bestReactionTime){
-    EEPROM.write(0, hits*10+time);
-    bestReactionTime = reactionTime;
+  int BSN = int(EEPROM.read(3) + EEPROM.read(4) + EEPROM.read(5));
+  int BT = int(EEPROM.read(6))*60;
+  int BH = int(EEPROM.read(7) + EEPROM.read(8) + EEPROM.read(9) + EEPROM.read(10));
+  double BRT = 1.0*BH/BT;
+  double RT = 1.0*hits/time*60;
+  
+  if(RT > BRT){
+    saveSession(3,sessionNum, time, hits, true);
+    BRT = RT;
   }
-  int whole = int(reactionTime);
-  int dec = int((reactionTime*100))%100;
-  int bwhole = int(bestReactionTime);
-  int bdec = int((bestReactionTime*100))%100;
+  
+  int whole = int(RT);
+  int dec = int((RT - int(RT))*100);
+  int bwhole = int(BRT);
+  int bdec = int((BRT - int(BRT))*100);
+  String sn = String(sessionNum);
+  String t = String(time);
+  String h = String(hits);
+  String rt = whole + "." + dec;
+  String brt = bwhole + "." + bdec;
+  
   lcd.clear();
-  lcd.print("S# " + sessionNum);
-  lcd.print(", Hits:");
-  if(hits<1000)
-    lcd.print(" "+hits);
-  else
-    lcd.print(hits);
+  lcd.print("Session #: " + sn);
   lcd.setCursor(0,1);
-  String RT = "RT: ";
-  String s0 = RT + whole + "." + dec;
-  String BRT = ", BRT: ";
-  String s1 = BRT + bwhole + "." + bdec;
-  lcd.print(s0);
-  lcd.print(s1);
+  lcd.print("Hits: " + h);
+  lcd.setCursor(0,2);
+  lcd.print("Reaction: " + rt);
+  lcd.setCursor(0,3);
+  lcd.print("Best: " + brt);
 }
 
 // quits session after 2 minutes or when they press quit
@@ -251,15 +256,53 @@ void waitForQuit(){
     delay(20);
   Timer1.stop();
   delay(20);
-  // clear display
+  lcd.clear();
   if(!quit)
     while(digitalRead(quitPin) == LOW)
       delay(20);
 }
 
 // saves session data to memory
-void saveSession(){
-  EEPROM.write(1,sessionNum);
+void saveSession(int loc, int sNum, int time, int hits, boolean best){
+  String sn = String(sNum);
+  String t = String(time);
+  String h = String(hits);
+  
+  if(sNum < 10)
+    sn = "00" + sn;
+  else if(sNum < 100)
+    sn = "0" + sn;
+  
+  if(hits < 10)
+    h = "000" + h;
+  else if(hits < 100)
+    h = "00" + h;
+  else if(hits < 1000)
+    h = "0" + h;
+    
+  if(!best){
+    EEPROM.write(0,sn.charAt(0));
+    EEPROM.write(1,sn.charAt(1));
+    EEPROM.write(2,sn.charAt(2));
+  }
+  
+  EEPROM.write(loc,sn.charAt(0));
+  EEPROM.write(loc+1,sn.charAt(1));
+  EEPROM.write(loc+2,sn.charAt(2));
+  EEPROM.write(loc+3,t.charAt(0));
+  EEPROM.write(loc+4,h.charAt(0));
+  EEPROM.write(loc+5,h.charAt(1));
+  EEPROM.write(loc+6,h.charAt(2));
+  EEPROM.write(loc+10,h.charAt(3));
+}
+
+// save data to SD card
+void saveToSD(){
+  // do stuff
+}
+
+void playSound(){
+  tone(speakerPin, 1000, 50);
 }
 
 // runs standard mode
@@ -272,7 +315,7 @@ void runStandardMode(){
         digitalRead(bpin2) == HIGH && digitalRead(bpin3) == HIGH)
     delay(20);
   hits++;
-  //play sound
+  playSound();
   delay(20);
   while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||
         digitalRead(bpin2) == LOW || digitalRead(bpin3) == LOW)
@@ -292,7 +335,7 @@ void runReactionMode(){
   Timer3.stop();
   if(!reactionTimeUp){
     hits++;
-    // play sound
+    playSound();
   }
   delay(20);
   while(digitalRead(bpin0) == LOW || digitalRead(bpin1) == LOW ||

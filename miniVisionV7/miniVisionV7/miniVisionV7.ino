@@ -75,7 +75,7 @@ int BM;
 long BTRT;
 
 int ART,whole,dec,BRT,bwhole,bdec;
-String sn,sm,h,m,t,art,stats;
+String sn,sm,h,m,t,art,stats,rs;
 String bsn,bmd,bh,bm,bt,brt;
 
 int numSavedSessions;
@@ -282,12 +282,16 @@ void computeSessionStats(){
   else
     brt = "no best data";
   
-  if(mode==0)
+  if(mode==0){
     sm = "Standard";
-  else
+    rs = "";
+  }
+  else{
     sm = "Reaction";
+    rs = ", Reaction Length: " + String(reactionTimeLeft) + " s";
+  }
   stats = "Session # " + sn + ", Mode:" + sm + ", Average Reaction Time:" + art + 
-          ", Hits:" + h + ", Misses:" + m + ", Time:" + time;
+          ", Hits:" + h + ", Misses:" + m + ", Time:" + time + " min" + rs;
 }
 
 void dumpEEPROMToSD(){
