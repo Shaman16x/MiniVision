@@ -545,6 +545,259 @@ void turnOffLEDs(){
   digitalWrite(top, HIGH);
 }
 
+void turnOnLEDS(){
+  
+  //Test Function
+  //Bottom Beam
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  //RIGHT BEAM
+  
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  //LEFT BEAM
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  delay(1000);
+  
+  //TOP BEAM
+  
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  delay(1000);
+  
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  delay(1000);
+  
+}
+  
+  
+
 void playSound(){
   tone(speakerPin, 1000, 250);
 }
@@ -553,6 +806,9 @@ void playSound(){
 // runs reaction mode
 // each iteration lights 1 led
 void runReactionMode(){
+  //delete the following line
+  turnOnLEDS();
+  
   lightRandomLED();
   reactionTimeLeft = reactionTimes[rIndex];
   second = 0;
