@@ -483,10 +483,12 @@ void updateDisplay(){
       lcd.clear();
       lcd.print(timeLeft);
       lcd.setCursor(0,1);
+      /*
       if(cardDetect)
         lcd.print("true");
       else
         lcd.print("false");
+      */
   }
 }
 
@@ -514,7 +516,7 @@ void displayStartCounter(){
 void displayEndSession(){
   lcd.clear();
   lcd.print("Session #: " + sn);
-  lcd.print(" num:" + String(numSavedSessions));
+  //lcd.print(" num:" + String(numSavedSessions));
   lcd.setCursor(0,1);
   lcd.print("Hits: " + h);
   lcd.print(", Miss: " + m);
