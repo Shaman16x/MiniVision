@@ -810,8 +810,6 @@ void playSound(){
 // runs reaction mode
 // each iteration lights 1 led
 void runReactionMode(){
-  //delete the following line
-  turnOnLEDS();
   
   lightRandomLED();
   reactionTimeLeft = reactionTimes[rIndex];
