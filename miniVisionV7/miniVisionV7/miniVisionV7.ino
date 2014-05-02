@@ -88,6 +88,7 @@ File sessionFile;
 LiquidCrystal lcd(37, 36, 43, 42, 45, 44);  // digital pins?
 
 void setup() {
+  lcd.clear();
   pinMode(timePin, INPUT_PULLUP);          // time pin as input with internal pullup
   pinMode(modePin, INPUT_PULLUP);          // mode pin as input with internal pullup
   pinMode(goPin, INPUT_PULLUP);            // go pin as input with internal pullup
