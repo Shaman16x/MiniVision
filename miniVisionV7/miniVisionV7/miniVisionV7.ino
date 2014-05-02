@@ -64,6 +64,7 @@ volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
 
 int second;
+int startCounter;
 boolean newBest;
 boolean change;
 
@@ -137,6 +138,14 @@ void setup() {
   oldLed = 5;
   armSelect = 0;
   oldArm = 4;
+  
+  sIndex = 0;
+  rIndex = 0;
+  mode = 0;
+  
+  runFlashyStart();
+  
+  Serial.begin(9600);
 }
 
 void cdisr(){
@@ -148,6 +157,7 @@ void cdisr(){
 // updates session time and displays every second
 // if session is over is the timer for viewing results
 void sessionTimer(){
+  startCounter--;
   update = false;
   counter++;
   second++;
@@ -177,20 +187,16 @@ void sessionTimer(){
 // restores default values for starting a session
 void setDefaults(){
   second = 0;
-  sIndex = 0;
-  rIndex = 0;
-  time = sessionTimes[0];
-  reactionTimeLeft = reactionTimes[0];
   go = false;
   change = true;
   timeUp = false;
   reactionTimeUp = false;
   started = false;
   quit = false;
-  mode = 0;
   hits = 0;
   misses = 0;
-  
+  time = sessionTimes[sIndex];
+  reactionTimeLeft = reactionTimes[rIndex];
   TRT = 0;
   Timer1.stop();
   sessionNum++;
@@ -203,10 +209,9 @@ void loop(){
     checkSettings();
   while(!timeUp){
     if(!started){
-      timeLeft = time*10;        // session time limit is time*60 seconds
       displayStartCounter();
+      Timer1.start();
     }
-    //change = false;
     if(mode == 0)
       runStandardMode();
     else{
@@ -224,6 +229,8 @@ void loop(){
     waitForQuit();
     Timer1.stop();
   }
+  else
+    sessionNum--;
 }
 
 void computeSessionStats(){
@@ -418,6 +425,15 @@ void saveToEEPROM(boolean best){
 
 // checks the settings buttons and updates display
 void checkSettings(){
+  if(digitalRead(quitPin) == LOW){
+    change = true;
+    sIndex = 0;
+    time = sessionTimes[sIndex];
+    mode = 0;
+    rIndex = 0;
+    reactionTimeLeft = reactionTimes[rIndex];
+  }
+  
   if(digitalRead(timePin) == LOW){
     change = true;
     sIndex = (sIndex+1)%((sizeof(sessionTimes)/sizeof(int)));
@@ -481,35 +497,51 @@ void updateDisplay(){
   }
   else{
       lcd.clear();
+      lcd.setCursor(3,1);
+      lcd.print("Time Remaining");
+      lcd.setCursor(9,2);
       lcd.print(timeLeft);
-      lcd.setCursor(0,1);
-      /*
-      if(cardDetect)
-        lcd.print("true");
-      else
-        lcd.print("false");
-      */
+  }
+}
+
+void waitStart(int num){
+  startCounter = num;
+  while(startCounter > 0 && !quit){
+    if(digitalRead(quitPin) == LOW){
+      quit = true;
+      timeUp = true;
+    }
   }
 }
 
 // display the starting count down
 void displayStartCounter(){
+  //Serial.println("did I get here");
+  timeLeft = 100;
+  quit = false;
+  timeUp = false;
+  Timer1.start();
   lcd.clear();
-  delay(500);
+  lcd.setCursor(10,1);
+  waitStart(500);
   lcd.print("3");
-  delay(1000);
+  waitStart(1000);
   lcd.clear();
+  lcd.setCursor(10,1);
   lcd.print("2");
-  delay(1000);
+  waitStart(1000);
   lcd.clear();
+  lcd.setCursor(10,1);
   lcd.print("1");
-  delay(1000);
+  waitStart(1000);
+  timeLeft = time*10;        // session time limit is time*60 seconds
   lcd.clear();
-  lcd.print("start");
-  delay(500);
-  lcd.clear();
+  lcd.setCursor(3,1);
+  lcd.print("Time Remaining");
+  lcd.setCursor(9,2);
   lcd.print(timeLeft);
   started = true;
+  Timer1.stop();
 }
 
 // display ending statistics
@@ -815,7 +847,6 @@ void runReactionMode(){
   
   lightRandomLED();
   reactionTimeLeft = reactionTimes[rIndex];
-  second = 0;
   counter = -1;
   Timer1.start();
   // check for correct button
@@ -860,8 +891,9 @@ void runReactionMode(){
     }
   }
   Timer1.stop();
-  if(quit)
+  if(quit){
     timeUp = true;
+  }
   else if(!timeUp){
     TRT += counter;
     if(!reactionTimeUp){
@@ -882,7 +914,6 @@ void runReactionMode(){
 // each iteration lights 1 led
 void runStandardMode(){
   lightRandomLED();
-  second = 0;
   counter = -1;
   Timer1.start();
   // check for correct button
@@ -986,4 +1017,6 @@ void lightRandomLED(){
     digitalWrite(top, LOW);
 }
 
-
+void runFlashyStart(){
+  // flash all the leds
+}
