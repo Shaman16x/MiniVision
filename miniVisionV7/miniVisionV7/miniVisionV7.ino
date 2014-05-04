@@ -563,12 +563,12 @@ void displayEndSession(){
 void waitForQuit(){
   timeLeft = 120;
   Timer1.start();
-  while(digitalRead(quitPin) == HIGH && !quit);
+  while(digitalRead(quitPin) == HIGH && digitalRead(goPin) == HIGH && !quit);
   Timer1.stop();
   delay(20);
   lcd.clear();
   if(!quit)
-    while(digitalRead(quitPin) == LOW);
+    while(digitalRead(quitPin) == LOW || digitalRead(goPin) == LOW);
 }
 
 void turnOffLEDs(){
