@@ -494,6 +494,8 @@ void updateDisplay(){
         String s5 = s4 + reactionTimeLeft + " sec";
         lcd.print(s5);
       }
+      lcd.setCursor(0,3);
+      lcd.print("press GO to start");
     }
   }
   else{
