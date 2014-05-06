@@ -495,7 +495,7 @@ void updateDisplay(){
         lcd.print(s5);
       }
       lcd.setCursor(0,3);
-      lcd.print("press GO to start");
+      lcd.print("\"Go\" begins session");
     }
   }
   else{
