@@ -80,7 +80,7 @@ String sn,sm,h,m,t,art,stats,rs;
 String bsn,bmd,bh,bm,bt,brt;
 
 int numSavedSessions;
-#define MAX_ADR 2763
+#define MAX_ADR 3013
 
 File sessionFile;
 
@@ -143,6 +143,7 @@ void setup() {
   sIndex = 0;
   rIndex = 0;
   mode = 0;
+  timeLeft = -1;
   
   runFlashyStart();
   
@@ -230,8 +231,10 @@ void loop(){
     waitForQuit();
     Timer1.stop();
   }
-  else
+  else{
     sessionNum--;
+    delay(500);
+  }
 }
 
 void computeSessionStats(){
@@ -248,10 +251,9 @@ void computeSessionStats(){
     art = String(whole);
     art += ".";
     art += String(dec);
-    art += " s";
   }
   else
-    art = "no hits";
+    art = "0"; //no hits
   
   if(BSN == 0 && hits != 0){
     BSN = sessionNum;
@@ -285,7 +287,6 @@ void computeSessionStats(){
     brt = String(bwhole);
     brt += ".";
     brt += String(bdec);
-    brt += " s";
   }
   else
     brt = "no best data";
@@ -296,24 +297,23 @@ void computeSessionStats(){
   }
   else{
     sm = "Reaction";
-    rs = ", Reaction Length: " + String(reactionTimeLeft) + " s";
+    rs = "\t" + String(reactionTimeLeft);
   }
-  stats = "Session # " + sn + ", Mode:" + sm + ", Average Reaction Time:" + art + 
-          ", Hits:" + h + ", Misses:" + m + ", Time:" + time + " min" + rs;
+  stats = sn + "\t" + sm + "\t" + art + "\t" + h + "\t" + m + "\t" + time + rs;
 }
 
 void dumpEEPROMToSD(){
-  int adr, val1, val2, val4, val5, val6;
+  int adr, val1, val2, val4, val5, val6, val7;
   long reactionTime;
-  String s,v1,v2,v3,v4,v5,v6;
+  String s,v1,v2,v3,v4,v5,v6,v7;
   if(numSavedSessions <= 250)
     adr = 14;
   else
-    adr = ((numSavedSessions-1)%250)*11 + 14;
-  sessionFile = SD.open("data.txt", FILE_WRITE);
+    adr = ((numSavedSessions-1)%250)*12 + 14;
+  sessionFile = SD.open("Visuo.txt", FILE_WRITE);
   if(!sessionFile)
     return;
-  for(int i=0; i < 250 && i < numSavedSessions; i++, adr+=11){
+  for(int i=0; i < 250 && i < numSavedSessions; i++, adr+=12){
     if(adr > MAX_ADR)
       adr = 14;
     val1 = ((int)EEPROM.read(adr))*256 + (int)EEPROM.read(adr+1);
@@ -322,21 +322,25 @@ void dumpEEPROMToSD(){
     val4 = ((int)EEPROM.read(adr+6))*256 + (int)EEPROM.read(adr+7);
     val5 = ((int)EEPROM.read(adr+8))*256 + (int)EEPROM.read(adr+9);
     val6 = (int)EEPROM.read(adr+10);
+    val7 = (int)EEPROM.read(adr+11);
     v1 = String(val1);
     if(val2 == 0)
       v2 = "Standard";
     else
       v2 = "Reaction";
     if(val4 == 0)
-      v3 = "not hits";
+      v3 = "0"; // no hits
     else
-      v3 = String(reactionTime/1000) + "." + String(reactionTime%1000) + " s";
+      v3 = String(reactionTime/1000) + "." + String(reactionTime%1000);
     v4 = String(val4);
     v5 = String(val5);
     v6 = String(val6);
-    s= "Session # " + v1 + ", Mode:" + v2 + ", Average Reaction Time:" + v3 + 
-       ", Hits:" + v4 + ", Misses:" + v5 + ", Time:" + v6;
+    if(val2 != 0)
+      v7 = "\t" + String(val7);
+    else
+      v7 = "";
     
+    s= v1 + "\t" + v2 + "\t" + v3 + "\t" + v4 + "\t" + v5 + "\t" + v6 + v7;
     sessionFile.println(s);
   }
   sessionFile.close();
@@ -358,6 +362,11 @@ void saveSession(){
       lcd.print("setup worked");
       initial = true;
       cardDetect = true;
+      if(!SD.exists("Visuo.txt")){
+        sessionFile = SD.open("Visuo.txt", FILE_WRITE);
+        sessionFile.println("Session #\tMode\tAverage Reaction Time (sec)\tHits\tMisses\tLength (min)\tSpeed (sec)");
+        sessionFile.close();
+      }
       dumpEEPROMToSD();
     }
     else{
@@ -369,7 +378,7 @@ void saveSession(){
   }
   
   if(cardDetect){
-    sessionFile = SD.open("data.txt", FILE_WRITE);
+    sessionFile = SD.open("Visuo.txt", FILE_WRITE);
     if(sessionFile){
       lcd.setCursor(0,++row);
       lcd.print("card found");
@@ -409,7 +418,7 @@ void saveToEEPROM(boolean best){
     EEPROM.write(13,BT);
   }
   else{
-    int loc = ((numSavedSessions-1)%250)*11+14;
+    int loc = ((numSavedSessions-1)%250)*12+14;
     EEPROM.write(loc,sessionNum/256);
     EEPROM.write(loc+1,sessionNum%256);
     EEPROM.write(loc+2,mode);
@@ -421,6 +430,7 @@ void saveToEEPROM(boolean best){
     EEPROM.write(loc+8,misses/256);
     EEPROM.write(loc+9,misses%256);
     EEPROM.write(loc+10,time);
+    EEPROM.write(loc+11,reactionTimes[rIndex]);
   }
 }
 
@@ -485,13 +495,13 @@ void updateDisplay(){
       else
         lcd.print("Mode: Reaction");
       lcd.setCursor(0,1);
-      String s2 = "Time: ";
-      String s3 = s2 + time + " min(s)";
+      String s2 = "Length (min): ";
+      String s3 = s2 + time;
       lcd.print(s3);
       if(mode == 1){
         lcd.setCursor(0,2);
-        String s4 = "Reaction Time: ";
-        String s5 = s4 + reactionTimeLeft + " sec";
+        String s4 = "Speed (sec): ";
+        String s5 = s4 + reactionTimeLeft;
         lcd.print(s5);
       }
       lcd.setCursor(0,3);
@@ -556,9 +566,9 @@ void displayEndSession(){
   lcd.print("Hits: " + h);
   lcd.print(", Miss: " + m);
   lcd.setCursor(0,2);
-  lcd.print("Reaction: " + art);
+  lcd.print("Reaction(sec): " + art);
   lcd.setCursor(0,3);
-  lcd.print("Best: " + brt);
+  lcd.print("Best(sec): " + brt);
 }
 
 // quits session after 2 minutes or when they press quit
@@ -771,6 +781,10 @@ void lightRandomLED(){
 void runFlashyStart(){
   lcd.setCursor(2,1);
   lcd.print("Welcome, friend");
+  Timer1.start();
+  quit = false;
+  
+  
   // flash all the leds
   //LED Position 1
   digitalWrite(LED1, HIGH);
@@ -783,8 +797,9 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
+  while(!quit){ 
   //LED Position 2
   digitalWrite(LED1, LOW);
   digitalWrite(LED2, HIGH);
@@ -796,7 +811,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
   //LED Position 3
   digitalWrite(LED1, LOW);
@@ -809,7 +824,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
   //LED Position 4
   digitalWrite(LED1, LOW);
@@ -822,7 +837,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
   //LED Position 5
   digitalWrite(LED1, LOW);
@@ -835,7 +850,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
   //LED Position 4
   digitalWrite(LED1, LOW);
@@ -848,7 +863,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
   //LED Position 3
   digitalWrite(LED1, LOW);
@@ -861,7 +876,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
 
   //LED Position 2
   digitalWrite(LED1, LOW);
@@ -874,7 +889,7 @@ void runFlashyStart(){
   digitalWrite(right, LOW);
   digitalWrite(left, LOW);
   digitalWrite(top, LOW);
-  delay(500);
+  waitStart(500);
   
   //LED Position 1
   digitalWrite(LED1, HIGH);
@@ -882,9 +897,9 @@ void runFlashyStart(){
   digitalWrite(LED3, LOW);
   digitalWrite(LED4, LOW);
   digitalWrite(LED5, LOW);
-  delay(500);
+  waitStart(500);
   
   turnOffLEDs();
-  
-
+  }
+  Timer1.stop();
 }
