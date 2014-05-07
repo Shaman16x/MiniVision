@@ -353,13 +353,13 @@ void saveSession(){
   EEPROM.write(0,sessionNum/256);
   EEPROM.write(1,sessionNum%256);
   
-  int row = 0;
-  lcd.clear();
-  lcd.print("writing to the SD");
+  //int row = 0;
+  //lcd.clear();
+  //lcd.print("writing to the SD");
   if(!initial){
     if(SD.begin(53)){
-      lcd.setCursor(0,++row);
-      lcd.print("setup worked");
+      //lcd.setCursor(0,++row);
+      //lcd.print("setup worked");
       initial = true;
       cardDetect = true;
       if(!SD.exists("Visuo.txt")){
@@ -369,28 +369,28 @@ void saveSession(){
       }
       dumpEEPROMToSD();
     }
-    else{
+    /*else{
       lcd.setCursor(0,++row);
       lcd.print("card setup failed");
       lcd.setCursor(0,++row);
       lcd.print("saved on device");
-    }
+    }*/
   }
   
   if(cardDetect){
     sessionFile = SD.open("Visuo.txt", FILE_WRITE);
     if(sessionFile){
-      lcd.setCursor(0,++row);
-      lcd.print("card found");
+      //lcd.setCursor(0,++row);
+      //lcd.print("card found");
       if(sessionFile.println(stats) == 0){
-        lcd.setCursor(0,++row);
-        lcd.print("write failed");
-        delay(1000);
+        //lcd.setCursor(0,++row);
+        //lcd.print("write failed");
+        //delay(1000);
       }
       sessionFile.close();
     }
-    lcd.setCursor(0,++row);
-    lcd.print("done writing");
+    //lcd.setCursor(0,++row);
+    //lcd.print("done writing");
   }
   else{
     if(numSavedSessions < 250){
@@ -398,8 +398,8 @@ void saveSession(){
       EEPROM.write(2,numSavedSessions);
     }
     saveToEEPROM(false);
-    lcd.setCursor(0,++row);
-    lcd.print("wrote to EEPROM");
+    //lcd.setCursor(0,++row);
+    //lcd.print("wrote to EEPROM");
   }
 }
 
@@ -779,19 +779,47 @@ void lightRandomLED(){
 }
 
 void runFlashyStart(){
+  lcd.setCursor(6,0);
+  lcd.print("VisouFlex");
   lcd.setCursor(2,1);
-  lcd.print("Welcome, friend");
+  lcd.print("Copyright 2014");
+  lcd.setCursor(4,2);
+  lcd.print("Press \"Stop\"");
+  
   Timer1.start();
   quit = false;
   
   while(!quit){ 
     
   flashPatternBounce();
+  flashPatternBounce();
+  flashPatternBounce();
+  flashPatternBounce();
+  
+  
   flashPatternClockwise();
   flashPatternCounterClockwise();
+  flashPatternClockwise();
+  flashPatternCounterClockwise();
+  flashPatternClockwise();
+  flashPatternCounterClockwise();
+  
+  
   flashPatternAllOn();
+  flashPatternAllOn();
+  flashPatternAllOn();
+  flashPatternAllOn();
+  
   flashPatternEveryOtherOn();
+  flashPatternEveryOtherOn();
+  flashPatternEveryOtherOn();
+  flashPatternEveryOtherOn();
+  
   flashpatternHorizontalVertical();
+  flashpatternHorizontalVertical();
+  flashpatternHorizontalVertical();
+  flashpatternHorizontalVertical();
+  
   
   turnOffLEDs();
   }
@@ -912,7 +940,11 @@ void flashPatternBounce(){
   digitalWrite(LED4, LOW);
   digitalWrite(LED5, LOW);
   waitStart(500);
+  
+  turnOffLEDs();
+  waitStart(200);
 }
+
 
 void flashPatternClockwise(){
   //Flash Pattern 2
@@ -928,7 +960,7 @@ void flashPatternClockwise(){
   digitalWrite(right, LOW);
   digitalWrite(left, HIGH);
   digitalWrite(top, HIGH);
-  waitStart(500);
+  waitStart(1000);
   
   //Bottom Arm ON
   digitalWrite(LED1, HIGH);
@@ -941,7 +973,7 @@ void flashPatternClockwise(){
   digitalWrite(right, HIGH);
   digitalWrite(left, HIGH);
   digitalWrite(top, HIGH);
-  waitStart(500);
+  waitStart(1000);
 
   //Left Arm ON
   digitalWrite(LED1, HIGH);
@@ -954,7 +986,7 @@ void flashPatternClockwise(){
   digitalWrite(right, HIGH);
   digitalWrite(left, LOW);
   digitalWrite(top, HIGH);
-  waitStart(500);
+  waitStart(1000);
  
   //Top Arm ON
   digitalWrite(LED1, HIGH);
@@ -967,7 +999,7 @@ void flashPatternClockwise(){
   digitalWrite(right, HIGH);
   digitalWrite(left, HIGH);
   digitalWrite(top, LOW);
-  waitStart(500);
+  waitStart(1000);
 }
 
 void flashPatternCounterClockwise(){
@@ -984,7 +1016,7 @@ void flashPatternCounterClockwise(){
   digitalWrite(right, LOW);
   digitalWrite(left, HIGH);
   digitalWrite(top, HIGH);
-  waitStart(500);
+  waitStart(1000);
   
   //Top Arm ON
   digitalWrite(LED1, HIGH);
@@ -997,7 +1029,7 @@ void flashPatternCounterClockwise(){
   digitalWrite(right, HIGH);
   digitalWrite(left, HIGH);
   digitalWrite(top, LOW);
-  waitStart(500);
+  waitStart(1000);
 
   //Left Arm ON
   digitalWrite(LED1, HIGH);
@@ -1010,7 +1042,7 @@ void flashPatternCounterClockwise(){
   digitalWrite(right, HIGH);
   digitalWrite(left, LOW);
   digitalWrite(top, HIGH);
-  waitStart(500);
+  waitStart(1000);
  
   //Bottom Arm ON
   digitalWrite(LED1, HIGH);
@@ -1023,7 +1055,7 @@ void flashPatternCounterClockwise(){
   digitalWrite(right, HIGH);
   digitalWrite(left, HIGH);
   digitalWrite(top, HIGH);
-  waitStart(500);
+  waitStart(1000);
 }
 
 void flashPatternAllOn(){
