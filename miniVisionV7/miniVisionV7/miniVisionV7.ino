@@ -784,8 +784,22 @@ void runFlashyStart(){
   Timer1.start();
   quit = false;
   
+  while(!quit){ 
+    
+  flashPatternBounce();
+  flashPatternClockwise();
+  flashPatternCounterClockwise();
+  flashPatternAllOn();
+  flashPatternEveryOtherOn();
+  flashpatternHorizontalVertical();
   
-  // flash all the leds
+  turnOffLEDs();
+  }
+  Timer1.stop();  
+}
+
+void flashPatternBounce(){
+  // Flash Pattern one 
   //LED Position 1
   digitalWrite(LED1, HIGH);
   digitalWrite(LED2, LOW);
@@ -799,7 +813,7 @@ void runFlashyStart(){
   digitalWrite(top, LOW);
   waitStart(500);
   
-  while(!quit){ 
+
   //LED Position 2
   digitalWrite(LED1, LOW);
   digitalWrite(LED2, HIGH);
@@ -898,8 +912,194 @@ void runFlashyStart(){
   digitalWrite(LED4, LOW);
   digitalWrite(LED5, LOW);
   waitStart(500);
+}
+
+void flashPatternClockwise(){
+  //Flash Pattern 2
+  //Right->Bottom->Left->Top arm lit
+  //Right Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  waitStart(500);
+  
+  //Bottom Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  waitStart(500);
+
+  //Left Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  waitStart(500);
+ 
+  //Top Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  waitStart(500);
+}
+
+void flashPatternCounterClockwise(){
+
+  //Right->Top->Left->Bottom arm lit
+  //Right Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  waitStart(500);
+  
+  //Top Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  waitStart(500);
+
+  //Left Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  waitStart(500);
+ 
+  //Bottom Arm ON
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, HIGH);
+  waitStart(500);
+}
+
+void flashPatternAllOn(){
+  //All on for 1 sec, all off for 1 sec
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, LOW);
+  digitalWrite(left, LOW);
+  digitalWrite(top, LOW);
+  waitStart(1000);
   
   turnOffLEDs();
-  }
-  Timer1.stop();
+  waitStart(1000);
 }
+
+void flashPatternEveryOtherOn(){
+  
+  //Turn on pos 1, 3, 5 & off 2,4
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, LOW);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, LOW);
+  digitalWrite(left, LOW);
+  digitalWrite(top, LOW);
+  waitStart(1000);
+  
+  //Turn off 1,3,5 and on 2,4
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, LOW);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, LOW);
+  digitalWrite(left, LOW);
+  digitalWrite(top, LOW);
+  waitStart(1000);
+}
+
+void flashpatternHorizontalVertical(){
+    
+  //Turn on Vertical & off Horizontal
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, LOW);
+  digitalWrite(right, HIGH);
+  digitalWrite(left, HIGH);
+  digitalWrite(top, LOW);
+  waitStart(1000);
+  
+  
+  //Turn on Horizontal & off Vertical
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, HIGH);
+  digitalWrite(LED4, HIGH);
+  digitalWrite(LED5, HIGH);
+  
+  digitalWrite(bottom, HIGH);
+  digitalWrite(right, LOW);
+  digitalWrite(left, LOW);
+  digitalWrite(top, HIGH);
+  waitStart(1000);
+}
+  
