@@ -63,10 +63,13 @@ volatile boolean go;              // alerts that session can begin
 volatile boolean timeUp;          // alerts that time limit is reached
 volatile boolean reactionTimeUp;  // alerts that reaction time limit is reached for reaction mode
 
+int resetTimer = 0;
 int second;
 int startCounter;
 boolean newBest;
 boolean change;
+boolean startCountdown;
+boolean resetCheck;
 
 int BSN;
 int BMD;
@@ -146,7 +149,8 @@ void setup() {
   timeLeft = -1;
   
   runFlashyStart();
-  
+  while(digitalRead(quitPin) == LOW || digitalRead(timePin) == LOW || digitalRead(modePin) == LOW 
+    || digitalRead(reactionPin) == LOW || digitalRead(goPin) == LOW);
   Serial.begin(9600);
 }
 
@@ -159,6 +163,9 @@ void cdisr(){
 // updates session time and displays every second
 // if session is over is the timer for viewing results
 void sessionTimer(){
+  if(resetCheck)
+    resetTimer++;
+  else{
   startCounter--;
   update = false;
   counter++;
@@ -184,11 +191,14 @@ void sessionTimer(){
   
   if(!timeUp && update)
     updateDisplay();
+  }
 }
 
 // restores default values for starting a session
 void setDefaults(){
   second = 0;
+  startCountdown = false;
+  resetCheck = false;
   go = false;
   change = true;
   timeUp = false;
@@ -211,7 +221,10 @@ void loop(){
     checkSettings();
   while(!timeUp){
     if(!started){
+      startCountdown = true;
       displayStartCounter();
+      startCountdown = false;
+      resetCheck = false;
       Timer1.start();
     }
     if(mode == 0)
@@ -289,7 +302,7 @@ void computeSessionStats(){
     brt += String(bdec);
   }
   else
-    brt = "no best data";
+    brt = "no data";
   
   if(mode==0){
     sm = "Standard";
@@ -436,6 +449,25 @@ void saveToEEPROM(boolean best){
 
 // checks the settings buttons and updates display
 void checkSettings(){
+  if(digitalRead(quitPin) == LOW && digitalRead(goPin) == LOW){
+    resetCheck = true;
+    resetTimer = 0;
+    Timer1.start();
+    while(digitalRead(quitPin) == LOW && digitalRead(goPin) == LOW && resetTimer < 5000);
+    Timer1.stop();
+    if(resetTimer >= 5000){
+      lcd.clear();
+      lcd.setCursor(2,1);
+      lcd.print("resetting device");
+      lcd.setCursor(2,2);
+      lcd.print("do not power off");
+      resetEEPROM();
+    }
+    while(digitalRead(quitPin) == LOW || digitalRead(goPin) == LOW);
+    resetCheck = false;
+    change = true;
+  }
+  else{
   if(digitalRead(quitPin) == LOW){
     change = true;
     sIndex = 0;
@@ -480,7 +512,7 @@ void checkSettings(){
         delay(20);
     }
   }
-  
+  }
   updateDisplay();
 }
 
@@ -512,17 +544,25 @@ void updateDisplay(){
       lcd.clear();
       lcd.setCursor(3,1);
       lcd.print("Time Remaining");
-      lcd.setCursor(9,2);
-      lcd.print(timeLeft);
+      lcd.setCursor(8,2);
+      if(timeLeft%60 < 10)
+        lcd.print(String(timeLeft/60) + ":0" + String(timeLeft%60));
+      else
+        lcd.print(String(timeLeft/60) + ":" + String(timeLeft%60));
   }
 }
 
 void waitStart(int num){
   startCounter = num;
   while(startCounter > 0 && !quit){
-    if(digitalRead(quitPin) == LOW || digitalRead(timePin) == LOW || digitalRead(modePin) == LOW 
-    || digitalRead(reactionPin) == LOW || digitalRead(goPin) == LOW ){
-      delay(750);
+    if(startCountdown){
+      if(digitalRead(quitPin) == LOW){
+        quit = true;
+        timeUp = true;
+      }
+    }
+    else if(digitalRead(quitPin) == LOW || digitalRead(timePin) == LOW || digitalRead(modePin) == LOW ||
+            digitalRead(reactionPin) == LOW || digitalRead(goPin) == LOW ){
       quit = true;
       timeUp = true;
     }
@@ -553,8 +593,11 @@ void displayStartCounter(){
   lcd.clear();
   lcd.setCursor(3,1);
   lcd.print("Time Remaining");
-  lcd.setCursor(9,2);
-  lcd.print(timeLeft);
+  lcd.setCursor(8,2);
+  if(timeLeft%60 < 10)
+    lcd.print(String(timeLeft/60) + ":0" + String(timeLeft%60));
+  else
+    lcd.print(String(timeLeft/60) + ":" + String(timeLeft%60));
   started = true;
   Timer1.stop();
 }
@@ -577,12 +620,11 @@ void displayEndSession(){
 void waitForQuit(){
   timeLeft = 120;
   Timer1.start();
-  while(digitalRead(quitPin) == HIGH && digitalRead(goPin) == HIGH && !quit);
+  while(digitalRead(quitPin) == HIGH && digitalRead(goPin) == HIGH && digitalRead(modePin) == HIGH &&
+        digitalRead(timePin) == HIGH && digitalRead(reactionPin) == HIGH && !quit);
   Timer1.stop();
-  delay(20);
-  lcd.clear();
-  if(!quit)
-    while(digitalRead(quitPin) == LOW || digitalRead(goPin) == LOW);
+  while(digitalRead(quitPin) == LOW || digitalRead(goPin) == LOW || digitalRead(modePin) == LOW ||
+        digitalRead(timePin) == LOW || digitalRead(reactionPin) == LOW);
 }
 
 void turnOffLEDs(){
@@ -598,6 +640,10 @@ void turnOffLEDs(){
   digitalWrite(top, HIGH);
 }
 
+void resetEEPROM(){
+  for(int i=0; i<4096; i++)
+    EEPROM.write(i,0);
+}
  
 void playSound(){
   tone(speakerPin, 1000, 250);
