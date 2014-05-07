@@ -520,7 +520,9 @@ void updateDisplay(){
 void waitStart(int num){
   startCounter = num;
   while(startCounter > 0 && !quit){
-    if(digitalRead(quitPin) == LOW){
+    if(digitalRead(quitPin) == LOW || digitalRead(timePin) == LOW || digitalRead(modePin) == LOW 
+    || digitalRead(reactionPin) == LOW || digitalRead(goPin) == LOW ){
+      delay(750);
       quit = true;
       timeUp = true;
     }
@@ -779,12 +781,12 @@ void lightRandomLED(){
 }
 
 void runFlashyStart(){
-  lcd.setCursor(6,0);
-  lcd.print("VisouFlex");
-  lcd.setCursor(2,1);
+  lcd.setCursor(5,0);
+  lcd.print("VisuoFlex");
+  lcd.setCursor(3,1);
   lcd.print("Copyright 2014");
-  lcd.setCursor(4,2);
-  lcd.print("Press \"Stop\"");
+  lcd.setCursor(3,2);
+  lcd.print("Strike any key");
   
   Timer1.start();
   quit = false;
