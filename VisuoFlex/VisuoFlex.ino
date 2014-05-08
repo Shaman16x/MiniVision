@@ -148,9 +148,13 @@ void setup() {
   mode = 0;
   timeLeft = -1;
   
+  /*
   runFlashyStart();
   while(digitalRead(quitPin) == LOW || digitalRead(timePin) == LOW || digitalRead(modePin) == LOW 
     || digitalRead(reactionPin) == LOW || digitalRead(goPin) == LOW);
+  */
+  // the above comented was only used for the design show
+  
   Serial.begin(9600);
 }
 
